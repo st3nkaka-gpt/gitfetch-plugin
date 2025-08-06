@@ -3,7 +3,7 @@
  * Plugin Name: GitFetch
  * Plugin URI:  https://github.com/your-org/gitfetch
  * Description: Uppdaterar och installerar plugins och teman från privata GitHub‑repositorier via WordPress admin. Ger administratörer möjlighet att lägga till repo, jämföra versioner och installera uppdateringar med ett klick.
- * Version: 0.4.0
+ * Version: 0.5.0
  * Author: Thomas & Effie
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -65,7 +65,7 @@ class GitFetch {
      * Define plugin constants used throughout the plugin.
      */
     private function define_constants() {
-        define( 'GITFETCH_VERSION', '0.4.0' );
+        define( 'GITFETCH_VERSION', '0.5.0' );
         define( 'GITFETCH_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
         define( 'GITFETCH_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
         define( 'GITFETCH_BASENAME', plugin_basename( __FILE__ ) );

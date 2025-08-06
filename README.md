@@ -1,6 +1,6 @@
 # GitFetch
 
-GitFetch är ett WordPress‑plugin som låter dig ansluta till privata GitHub‑repositorier, jämföra versioner av teman och plugins, se README och CHANGELOG och installera uppdateringar direkt från admin. Pluginet är designat för egenutvecklade projekt där versioner lagras i GitHub och distribueras utanför WordPress.org.
+GitFetch är ett WordPress‑plugin (version 0.5.0) som låter dig ansluta till privata GitHub‑repositorier, jämföra versioner av teman och plugins, och installera eller uppdatera dem direkt från admin. Pluginet är designat för egenutvecklade projekt där versioner lagras i GitHub och distribueras utanför WordPress.org.
 
 ## Funktioner
 
@@ -8,8 +8,8 @@ GitFetch är ett WordPress‑plugin som låter dig ansluta till privata GitHub�
 * Lägg till flera GitHub‑repo via admin och märk dem som plugin eller tema – du behöver aldrig redigera kod för att lägga till eller ändra ett repo.
 * Visa en lista över dina repo med möjlighet att ta bort dem.
 * Tydlig angivelse av vilket repo varje paket tillhör i översiktstabellen; du ser alltid namnet på det repo du arbetar mot.
-* Visar installerad version och senaste release-version i paketöversikten.
-* (Planned) Möjlighet att installera uppdateringar eller nedgradera till en tidigare version.
+* Visar installerad version och senaste release‑version i paketöversikten.
+* **Installera eller uppdatera paket**: Om en release finns på GitHub kan du med ett klick installera paketet om det inte finns, eller uppdatera det till senaste version. Pluginet använder WordPress’ uppgraderingsklasser och hämtar zip‑filen från GitHub.
 * Visar pluginets egna versionsnummer i inställningssidan.
 * Gissar automatiskt typ (plugin eller tema) för ett repo om du inte anger typen, baserat på om repo‑namnet börjar med `plugin` eller `theme`.
 * (Planned) Visa `README.md` och `CHANGELOG.md` från repo i admin.

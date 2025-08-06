@@ -93,6 +93,38 @@ class GitFetch_Admin {
                     update_option( 'gitfetch_repositories', $repos, false );
                     add_settings_error( 'gitfetch_messages', 'repo_deleted', __( 'Repository deleted.', 'gitfetch' ), 'updated' );
                 }
+            } elseif ( 'install_package' === $action || 'update_package' === $action ) {
+                // Install or update a package via GitHub release.
+                $owner = sanitize_text_field( wp_unslash( $_POST['repo_owner'] ?? '' ) );
+                $repo  = sanitize_text_field( wp_unslash( $_POST['repo_name'] ?? '' ) );
+                $type  = sanitize_text_field( wp_unslash( $_POST['repo_type'] ?? 'plugin' ) );
+                if ( $owner && $repo ) {
+                    $token = get_option( 'gitfetch_token', '' );
+                    if ( empty( $token ) ) {
+                        add_settings_error( 'gitfetch_messages', 'install_error', __( 'GitHub token is missing.', 'gitfetch' ), 'error' );
+                    } else {
+                        require_once GITFETCH_PLUGIN_DIR . 'inc/class-github-api.php';
+                        $gh_api   = new GitFetch_GitHub_API( $token );
+                        $release  = $gh_api->get_latest_release( $owner, $repo );
+                        if ( is_wp_error( $release ) ) {
+                            add_settings_error( 'gitfetch_messages', 'install_error', sprintf( __( 'Failed to fetch release: %s', 'gitfetch' ), $release->get_error_message() ), 'error' );
+                        } else {
+                            $package_url = $gh_api->get_release_asset_url( $release );
+                            if ( is_wp_error( $package_url ) ) {
+                                add_settings_error( 'gitfetch_messages', 'install_error', sprintf( __( 'No downloadable asset: %s', 'gitfetch' ), $package_url->get_error_message() ), 'error' );
+                            } else {
+                                // Install or update using our upgrader helper.
+                                require_once GITFETCH_PLUGIN_DIR . 'inc/class-upgrader.php';
+                                $result = GitFetch_Upgrader::install_package( $package_url, $type, true );
+                                if ( is_wp_error( $result ) ) {
+                                    add_settings_error( 'gitfetch_messages', 'install_error', sprintf( __( 'Installation failed: %s', 'gitfetch' ), $result->get_error_message() ), 'error' );
+                                } else {
+                                    add_settings_error( 'gitfetch_messages', 'install_success', __( 'Package installed or updated successfully.', 'gitfetch' ), 'updated' );
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -250,8 +282,12 @@ class GitFetch_Admin {
                     }
 
                     $packages_info[] = array(
-                        'name'              => $repo['owner'] . '/' . $slug,
+                        // Repository metadata for actions.
+                        'owner'             => $repo['owner'],
+                        'repo'              => $slug,
                         'type'              => $type,
+                        // Display values.
+                        'name'              => $repo['owner'] . '/' . $slug,
                         'installed'         => $installed,
                         'installed_version' => $installed_version,
                         'latest_version'    => $latest_version,
@@ -305,7 +341,45 @@ class GitFetch_Admin {
                                     }
                                     ?>
                                 </td>
-                                <td><?php esc_html_e( 'Coming soon', 'gitfetch' ); ?></td>
+                                <td>
+                                    <?php
+                                    // Determine which action button to show.
+                                    if ( ! empty( $pkg['error_msg'] ) || 'N/A' === $pkg['latest_version'] || 'No release' === $pkg['latest_version'] ) {
+                                        esc_html_e( 'N/A', 'gitfetch' );
+                                    } else {
+                                        // Normalize versions for comparison.
+                                        $installed_v = ltrim( $pkg['installed_version'], 'vV' );
+                                        $latest_v    = ltrim( $pkg['latest_version'], 'vV' );
+                                        if ( ! $pkg['installed'] ) {
+                                            // Show install button.
+                                            ?>
+                                            <form method="post" style="display:inline;">
+                                                <?php wp_nonce_field( 'gitfetch_action', '_gitfetch_nonce' ); ?>
+                                                <input type="hidden" name="gitfetch_action" value="install_package" />
+                                                <input type="hidden" name="repo_owner" value="<?php echo esc_attr( $pkg['owner'] ); ?>" />
+                                                <input type="hidden" name="repo_name" value="<?php echo esc_attr( $pkg['repo'] ); ?>" />
+                                                <input type="hidden" name="repo_type" value="<?php echo esc_attr( $pkg['type'] ); ?>" />
+                                                <?php submit_button( __( 'Install', 'gitfetch' ), 'primary', 'submit', false ); ?>
+                                            </form>
+                                            <?php
+                                        } elseif ( version_compare( $installed_v, $latest_v, '<' ) ) {
+                                            // Show update button.
+                                            ?>
+                                            <form method="post" style="display:inline;">
+                                                <?php wp_nonce_field( 'gitfetch_action', '_gitfetch_nonce' ); ?>
+                                                <input type="hidden" name="gitfetch_action" value="update_package" />
+                                                <input type="hidden" name="repo_owner" value="<?php echo esc_attr( $pkg['owner'] ); ?>" />
+                                                <input type="hidden" name="repo_name" value="<?php echo esc_attr( $pkg['repo'] ); ?>" />
+                                                <input type="hidden" name="repo_type" value="<?php echo esc_attr( $pkg['type'] ); ?>" />
+                                                <?php submit_button( sprintf( __( 'Update to %s', 'gitfetch' ), esc_html( $pkg['latest_version'] ) ), 'primary', 'submit', false ); ?>
+                                            </form>
+                                            <?php
+                                        } else {
+                                            esc_html_e( 'Up to date', 'gitfetch' );
+                                        }
+                                    }
+                                    ?>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

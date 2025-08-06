@@ -90,6 +90,51 @@ class GitFetch_GitHub_API {
     }
 
     /**
+     * Retrieves the latest release object for a repository.
+     *
+     * @param string $owner Repo owner.
+     * @param string $repo  Repo name.
+     *
+     * @return array|WP_Error Release object or WP_Error on failure.
+     */
+    public function get_latest_release( $owner, $repo ) {
+        $releases = $this->get_releases( $owner, $repo );
+        if ( is_wp_error( $releases ) ) {
+            return $releases;
+        }
+        if ( is_array( $releases ) && ! empty( $releases ) ) {
+            return $releases[0];
+        }
+        return new WP_Error( 'no_release', __( 'No releases found.', 'gitfetch' ) );
+    }
+
+    /**
+     * Returns the browser_download_url for the first asset in a release.
+     * Falls back to the zipball_url if no assets exist.
+     *
+     * @param array $release Release object returned from GitHub API.
+     *
+     * @return string|WP_Error URL to zip package or WP_Error on failure.
+     */
+    public function get_release_asset_url( $release ) {
+        if ( ! is_array( $release ) ) {
+            return new WP_Error( 'invalid_release', __( 'Invalid release object.', 'gitfetch' ) );
+        }
+        // If assets are provided, return the first asset's browser_download_url.
+        if ( isset( $release['assets'] ) && is_array( $release['assets'] ) && ! empty( $release['assets'] ) ) {
+            $asset = $release['assets'][0];
+            if ( isset( $asset['browser_download_url'] ) ) {
+                return $asset['browser_download_url'];
+            }
+        }
+        // Fallback to zipball_url.
+        if ( isset( $release['zipball_url'] ) ) {
+            return $release['zipball_url'];
+        }
+        return new WP_Error( 'no_asset', __( 'No downloadable assets available.', 'gitfetch' ) );
+    }
+
+    /**
      * Parses a WP HTTP response.
      *
      * @param WP_Error|array $response Response from wp_remote_get().

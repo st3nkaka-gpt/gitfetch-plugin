@@ -2,6 +2,19 @@
 
 Alla viktiga ändringar i detta projekt dokumenteras i denna fil.
 
+## [0.5.0] – 2025-08-06
+
+### Added
+
+* Möjlighet att installera eller uppdatera paket direkt från admin. GitFetch hämtar den senaste releasen från GitHub, laddar ner zip‑filen och installerar/uppdaterar pluginet eller temat via WordPress uppgraderingssystem.
+* Nytt API‑stöd i klassen `GitFetch_GitHub_API` för att hämta senaste release och läsa dess assets (fallback till `zipball_url` om inga assets finns).
+* En "Install" respektive "Update"‑knapp i paketöversikten med logik som avgör när knappen ska visas beroende på om paketet är installerat och jämförelse mellan installerad version och den senaste releasen.
+* Förbättrade felmeddelanden vid API‑anrop och installationer: visar när token saknas, när ingen release finns eller när installationen misslyckas.
+
+### Changed
+
+* Uppdaterade pluginversion till 0.5.0.
+
 ## [0.2.0] – 2025-08-06
 
 ### Added
